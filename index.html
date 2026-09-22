@@ -621,6 +621,10 @@ function adminSettings(){
     '<div class="field"><label>已取消</label><input name="st_cancelled" value="' + esc(s.st_cancelled) + '"></div></div>' +
     '<button class="btn btn-gold btn-block" type="submit">保存全部设置</button></form>';
   return form +
+    '<div class="panel"><div class="kv"><b>资料备份（拷贝一份）</b><br>下载备份：把当前全部店铺／菜品／订单／设置存成一个 JSON 档。还原备份：选择备份档覆盖当前资料。</div>' +
+    '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" data-act="backup-export">下载备份</button>' +
+    '<button class="btn btn-ghost btn-sm" data-act="backup-import">还原备份</button>' +
+    '<input type="file" id="backupFile" accept=".json,application/json" style="display:none"></div></div>' +
     '<div class="panel"><div class="kv"><b>① 连接 Supabase</b><br>编辑本文件顶部 CONFIG，填入 SUPABASE_URL 与 SUPABASE_ANON_KEY；再在 Supabase SQL Editor 执行下方建表 SQL，并在 Storage 新建 public 桶 <code>images</code>、<code>docs</code>。未配置时应用自动使用本地模式，设置存于浏览器。</div></div>' +
     '<div class="panel"><div class="kv"><b>② 完整离线（可选）</b><br>本文件已内嵌全部 CSS/JS 与 manifest，可直接安装到主屏幕。若需 Service Worker 离线缓存，将下方代码保存为同目录 <code>sw.js</code>（唯一可选的附加文件）：</div>' +
     '<textarea class="sqlbox" readonly style="min-height:120px;margin-top:8px">' + esc(SW_SRC) + '</textarea>' +
@@ -708,7 +712,38 @@ document.addEventListener('click', function(e){
   else if (act === 'logout') { sessionStorage.removeItem('jpd_admin'); location.hash = '#/'; render(); }
   else if (act === 'copy-sql') { copyText(SQL_SCHEMA, 'SQL 已复制'); }
   else if (act === 'copy-sw') { copyText(SW_SRC, 'sw.js 代码已复制'); }
+  else if (act === 'backup-export') { exportBackup(); }
+  else if (act === 'backup-import') { var bf = document.getElementById('backupFile'); if (bf) bf.click(); }
 });
+function exportBackup(){
+  var blob = new Blob([JSON.stringify(cache, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zhongjian-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 0);
+  toast('备份已下载');
+}
+function importBackup(input){
+  var file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  var r = new FileReader();
+  r.onload = function(){
+    var data;
+    try { data = JSON.parse(r.result); } catch(e){ toast('备份档读取失败'); return; }
+    if (!data || !Array.isArray(data.shops) || !Array.isArray(data.dishes)) { toast('备份档格式不对'); return; }
+    if (!confirm('还原将覆盖当前全部资料（店铺／菜品／订单／设置），继续？')) return;
+    cache.shops = data.shops;
+    cache.dishes = data.dishes;
+    cache.orders = Array.isArray(data.orders) ? data.orders : [];
+    cache.files = Array.isArray(data.files) ? data.files : [];
+    cache.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings || {});
+    persist(); applyTheme(); render();
+    toast('还原完成');
+  };
+  r.readAsText(file);
+}
 function copyText(t, msg){
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ toast(msg); }, function(){ fallbackCopy(t, msg); });
   else fallbackCopy(t, msg);
@@ -729,6 +764,7 @@ document.addEventListener('input', function(e){
 });
 document.addEventListener('change', function(e){
   var t = e.target;
+  if (t.id === 'backupFile') { importBackup(t); return; }
   if (t.matches('select[data-filter-shop]')) { state.dishShopFilter = t.value; render(); return; }
   if (t.matches('select[data-status]')) { dbUpd('orders', { id: t.dataset.id, status: t.value }).then(render); return; }
   if (t.matches('input[type=file]')) { handleFilePick(t); return; }
