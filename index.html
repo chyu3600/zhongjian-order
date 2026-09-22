@@ -321,6 +321,7 @@ async function uploadFile(file){
 
 /* ---------------- 全局状态 ---------------- */
 var state = { chip: '全部', q: '', searchOpen: false, adminTab: 'shops', editShop: null, editDish: null, dishShopFilter: '', editOrder: null, editFile: null };
+var logoTaps = { n: 0, t: 0 };
 var cart = LS.get('jpd_cart', { shop_id: null, items: {} });
 function saveCart(){ LS.set('jpd_cart', cart); }
 function deviceId(){ var d = LS.get('jpd_device', ''); if (!d) { d = uid(); LS.set('jpd_device', d); } return d; }
@@ -364,7 +365,7 @@ function viewHome(){
   var s = settings();
   var chips = ['全部'].concat(allTags());
   return '<div class="topbar">' +
-      '<div class="logo">' + esc(s.logo_char) + '</div>' +
+      '<div class="logo" data-act="logo-tap">' + esc(s.logo_char) + '</div>' +
       '<div class="brandwrap"><div class="brand">' + esc(s.app_name) + '</div><div class="brand-sub">' + esc(s.app_sub) + '</div></div>' +
       '<button class="iconbtn installbtn" id="installBtn" data-act="install" title="安装应用">⤓</button>' +
     '</div>' +
@@ -675,6 +676,12 @@ document.addEventListener('click', function(e){
   if (!el) return;
   var act = el.dataset.act, id = el.dataset.id;
   if (act === 'go') { location.hash = el.dataset.hash; }
+  else if (act === 'logo-tap') {
+    var now = Date.now();
+    if (now - logoTaps.t > 1500) logoTaps.n = 0;
+    logoTaps.t = now; logoTaps.n++;
+    if (logoTaps.n >= 5) { logoTaps.n = 0; location.hash = '#/admin'; }
+  }
   else if (act === 'chip') { state.chip = id; render(); }
   else if (act === 'toggle-search') { state.searchOpen = true; render(); }
   else if (act === 'close-search') { state.searchOpen = false; state.q = ''; render(); }
