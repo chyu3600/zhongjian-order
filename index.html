@@ -41,6 +41,16 @@ input,select,textarea{font-family:inherit}
 .card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(31,35,41,.06);cursor:pointer}
 .thumb{position:relative;aspect-ratio:16/10;background:#e8eaed;display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden}
 .thumb img{width:100%;height:100%;object-fit:cover}
+.video-wrap{aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+.video-wrap iframe{width:100%;height:100%;border:0;display:block}
+.frow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f1f2}
+.frow:last-child{border-bottom:0}
+.ficon{font-size:24px;flex:none}
+.file-preview{max-height:60vh;overflow:auto}
+.sheet-wrap table{width:100%;border-collapse:collapse;font-size:12px}
+.sheet-wrap td,.sheet-wrap th{border:1px solid #e3e5e8;padding:4px 6px;text-align:left}
+.doc-wrap{font-size:14px;line-height:1.7}
+.doc-wrap img{max-width:100%}
 .badge{position:absolute;top:0;left:0;background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 100%);color:var(--gtx);font-size:12px;font-weight:700;padding:4px 11px;border-radius:10px 0 8px 0;box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .card h3{margin:10px 12px 8px;font-size:17px;font-weight:700;color:#1c1f23;line-height:1.3}
 .tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 12px 12px}
@@ -304,7 +314,10 @@ function readDataURL(file){
   });
 }
 async function uploadFile(file){
-  var kind = file.type && file.type.indexOf('image/') === 0 ? 'image' : 'doc';
+  var kind = 'doc';
+  if (file.type && file.type.indexOf('image/') === 0) kind = 'image';
+  else if (/\.(xlsx|xls|csv)$/i.test(file.name)) kind = 'excel';
+  else if (/\.(docx|doc)$/i.test(file.name)) kind = 'word';
   if (cloudOk()) {
     var bucket = kind === 'image' ? 'images' : 'docs';
     var path = Date.now() + '_' + file.name;
@@ -371,7 +384,89 @@ function viewHome(){
     '</div>' +
     '<div class="chips">' + chips.map(function(c){ return '<button class="chip' + (state.chip === c ? ' on' : '') + '" data-act="chip" data-id="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
     '<div class="section-title">' + esc(s.section_title) + '</div>' +
-    '<div class="grid" id="shopGrid">' + shopGridHTML() + '</div>';
+    '<div class="grid" id="shopGrid">' + shopGridHTML() + '</div>' +
+    homeVideosHTML() + homeDocsHTML();
+}
+function homeVideosHTML(){
+  var vids = cache.files.filter(function(f){ return f.kind === 'video'; });
+  if (!vids.length) return '';
+  return '<div class="section-title">影片</div>' + vids.map(function(v){
+    var em = ytEmbed(v.url);
+    if (!em) return '';
+    return '<div class="panel"><div class="video-wrap"><iframe src="' + esc(em) + '" title="' + esc(v.name) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
+      '<div style="font-size:13px;font-weight:600;margin-top:6px">' + esc(v.name) + '</div></div>';
+  }).join('');
+}
+function homeDocsHTML(){
+  var docs = cache.files.filter(function(f){ return f.kind === 'excel' || f.kind === 'word' || f.kind === 'doc'; });
+  if (!docs.length) return '';
+  return '<div class="section-title">資料下載</div><div class="panel">' + docs.map(function(f){
+    return '<div class="frow">' + '<span class="ficon">' + fileIcon(f.kind) + '</span>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(f.name) + '</div>' +
+      '<div style="font-size:11px;color:#98a0a8">' + fileKindLabel(f.kind) + '</div></div>' +
+      (f.kind === 'excel' || f.kind === 'word' ? '<button class="btn btn-ghost btn-sm" data-act="open-file" data-id="' + f.id + '">预览</button>' : '') +
+      '<a class="btn btn-primary btn-sm" href="' + esc(f.url) + '" download="' + esc(f.name) + '">下载</a></div>';
+  }).join('') + '</div>';
+}
+
+/* ---------------- 视图：文件预览（Excel / Word / YouTube） ---------------- */
+function findFile(id){
+  for (var i = 0; i < cache.files.length; i++) if (cache.files[i].id === id) return cache.files[i];
+  return null;
+}
+function viewFile(id){
+  var f = findFile(id);
+  if (!f) return '<div class="empty"><span class="big">😕</span>文件不存在</div>';
+  var head = '<div class="backbar"><button class="iconbtn" data-act="go" data-hash="#/">‹</button>' + esc(f.name) + '</div>';
+  if (f.kind === 'video') {
+    var em = ytEmbed(f.url);
+    return head + '<div class="panel"><div class="video-wrap">' + (em ? '<iframe src="' + esc(em) + '" title="' + esc(f.name) + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>' : '<div class="empty"><span class="big">⚠️</span>YouTube 连结无效</div>') + '</div></div>';
+  }
+  setTimeout(function(){ loadPreview(f); }, 0);
+  return head + '<div class="panel"><div id="filePreview" class="file-preview"><div class="empty"><span class="big">⏳</span>预览载入中…</div></div>' +
+    '<div style="margin-top:10px"><a class="btn btn-primary btn-block" href="' + esc(f.url) + '" download="' + esc(f.name) + '">下载原档</a></div></div>';
+}
+var _scriptCache = {};
+function loadScript(src){
+  if (_scriptCache[src]) return _scriptCache[src];
+  _scriptCache[src] = new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = function(){ reject(new Error('预览元件载入失败（需联网）')); };
+    document.head.appendChild(s);
+  });
+  return _scriptCache[src];
+}
+function loadPreview(f){
+  var box = document.getElementById('filePreview');
+  if (!box) return;
+  var fail = function(err){ box.innerHTML = '<div class="empty"><span class="big">⚠️</span>预览失败：' + esc(err.message) + '<br>请改用下方「下载原档」</div>'; };
+  fetch(f.url).then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.arrayBuffer();
+  }).then(function(buf){
+    if (f.kind === 'excel') return previewExcel(buf, box);
+    if (f.kind === 'word') return previewWord(buf, box);
+    throw new Error('此类型仅支持下载');
+  }).catch(fail);
+}
+function previewExcel(buf, box){
+  return loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js').then(function(){
+    var wb = window.XLSX.read(new Uint8Array(buf), { type: 'array' });
+    box.innerHTML = '<div class="sheet-wrap">' + wb.SheetNames.map(function(n){
+      var rows = window.XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '' });
+      var tbl = '<table>' + rows.map(function(r){
+        return '<tr>' + r.map(function(c){ return '<td>' + esc(String(c)) + '</td>'; }).join('') + '</tr>';
+      }).join('') + '</table>';
+      return '<div class="kv" style="margin:8px 0 4px"><b>' + esc(n) + '</b></div>' + tbl;
+    }).join('') + '</div>';
+  });
+}
+function previewWord(buf, box){
+  return loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js').then(function(){
+    return window.mammoth.convertToHtml({ arrayBuffer: buf });
+  }).then(function(res){
+    box.innerHTML = '<div class="doc-wrap">' + res.value + '</div>';
+  });
 }
 function shopGridHTML(){
   var list = filteredShops();
@@ -561,14 +656,29 @@ function adminFiles(){
       '<div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">保存</button><button class="btn btn-ghost" type="button" data-act="cancel-file">取消</button></div></form>';
   }
   var rows = cache.files.map(function(f){
-    return '<tr><td>' + (f.kind === 'image' ? '🖼️' : '📄') + '</td><td>' + esc(f.name) + '<br><span style="color:#98a0a8;font-size:11px">' + (f.size ? (f.size / 1024).toFixed(1) + ' KB · ' : '') + new Date(f.created_at).toLocaleDateString() + '</span></td>' +
-      '<td><a class="btn btn-ghost btn-sm" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">下载</a> ' +
+    return '<tr><td>' + fileIcon(f.kind) + '</td><td>' + esc(f.name) + '<br><span style="color:#98a0a8;font-size:11px">' + fileKindLabel(f.kind) + (f.size ? ' · ' + (f.size / 1024).toFixed(1) + ' KB' : '') + ' · ' + new Date(f.created_at).toLocaleDateString() + '</span></td>' +
+      '<td>' + (f.kind === 'excel' || f.kind === 'word' || f.kind === 'video' ? '<button class="btn btn-ghost btn-sm" data-act="open-file" data-id="' + f.id + '">预览</button> ' : '') +
+      '<a class="btn btn-ghost btn-sm" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">下载</a> ' +
       '<button class="btn btn-ghost btn-sm" data-act="edit-file" data-id="' + f.id + '">改名</button> ' +
       '<button class="btn btn-danger btn-sm" data-act="del-file" data-id="' + f.id + '">删除</button></td></tr>';
   }).join('');
-  return form + '<div class="panel"><label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ 上传图片 / docx 文件<input type="file" accept="image/*,.docx,.doc" data-target="" hidden></label>' +
-    '<div class="hint">配置 Supabase 后上传至 Storage 桶（images / docs）；本地模式以 base64 存于浏览器（≤4MB）。</div></div>' +
+  return form + '<div class="panel"><label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ 上传图片 / Excel / Word 文件<input type="file" accept="image/*,.xlsx,.xls,.csv,.docx,.doc" data-target="" hidden></label>' +
+    '<div class="hint">Excel（.xlsx/.xls/.csv）与 Word（.docx/.doc）上传后，前台可预览与下载。</div>' +
+    '<div class="field" style="margin-top:10px"><label>YouTube 影片连结（贴上网址后点新增）</label>' +
+    '<div style="display:flex;gap:8px"><input id="ytUrl" placeholder="https://www.youtube.com/watch?v=…">' +
+    '<button class="btn btn-primary" type="button" data-act="add-yt" style="flex:none">新增</button></div></div>' +
+    '<div class="hint">影片上传请先到 YouTube 上传取得连结，再贴到此处嵌入前台。</div></div>' +
     (rows ? '<div class="tbl-wrap"><table><tr><th></th><th>文件</th><th>操作</th></tr>' + rows + '</table></div>' : '<div class="empty"><span class="big">📁</span>暂无文件</div>');
+}
+function fileIcon(kind){
+  return ({ image: '🖼️', excel: '📊', word: '📝', video: '▶️' })[kind] || '📄';
+}
+function fileKindLabel(kind){
+  return ({ image: '图片', excel: 'Excel 表', word: 'Word 表', video: 'YouTube 影片' })[kind] || '文件';
+}
+function ytEmbed(url){
+  var m = String(url || '').trim().match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? 'https://www.youtube-nocookie.com/embed/' + m[1] : null;
 }
 var SQL_SCHEMA =
 "-- 在 Supabase SQL Editor 中执行以下建表语句：\n" +
@@ -648,6 +758,7 @@ function render(){
   var showTab = true;
   if (p[0] === 'admin') { showTab = false; html = isAdmin() ? viewAdmin() : viewLogin(); }
   else if (p[0] === 'shop' && p[1]) html = viewShop(p[1]);
+  else if (p[0] === 'file' && p[1]) { showTab = false; html = viewFile(p[1]); }
   else if (p[0] === 'cart') html = viewCart();
   else if (p[0] === 'orders') html = viewOrders();
   else html = viewHome();
@@ -707,6 +818,13 @@ document.addEventListener('click', function(e){
   else if (act === 'edit-order') { state.editOrder = id; render(); }
   else if (act === 'cancel-order') { state.editOrder = null; render(); }
   else if (act === 'del-file') { if (confirm('删除该文件记录？')) dbDel('files', id); }
+  else if (act === 'open-file') { location.hash = '#/file/' + id; }
+  else if (act === 'add-yt') {
+    var inp = document.getElementById('ytUrl');
+    var raw = inp ? inp.value.trim() : '';
+    if (!ytEmbed(raw)) { toast('YouTube 连结格式不对'); return; }
+    dbAdd('files', { name: 'YouTube 影片', kind: 'video', url: raw }).then(function(){ toast('影片已新增'); render(); });
+  }
   else if (act === 'edit-file') { state.editFile = id; render(); }
   else if (act === 'cancel-file') { state.editFile = null; render(); }
   else if (act === 'logout') { sessionStorage.removeItem('jpd_admin'); location.hash = '#/'; render(); }
