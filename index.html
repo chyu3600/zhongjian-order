@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="忠鍵工業點餐">
-<title>忠鍵工業點餐</title>
+<meta name="apple-mobile-web-app-title" content="忠鍵工業點餐app">
+<title>忠鍵工業點餐app</title>
 <style>
 :root{--g1:#f7d878;--g2:#e9b23f;--gtx:#7a5200;--p1:#ff8a3d;--p2:#ff5f2e}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,9 +22,9 @@ input,select,textarea{font-family:inherit}
 /* ---------- 顶部 ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 0 rgba(31,35,41,.08)}
 .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--gtx);font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 6px var(--g2)}
-.brandwrap{flex:1;min-width:0}
-.brand{font-size:18px;font-weight:800;letter-spacing:.5px;white-space:nowrap;line-height:1.2}
-.brand-sub{font-size:11px;color:#98a0a8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brandwrap{flex:1;min-width:0;text-align:center}
+.brand{font-size:18px;font-weight:800;letter-spacing:.5px;white-space:nowrap;line-height:1.2;text-align:center}
+.brand-sub{font-size:11px;color:#98a0a8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .iconbtn{border:none;background:#ebedf0;border-radius:50%;width:36px;height:36px;font-size:16px;flex:none;cursor:pointer}
 
 /* ---------- 分类 chips ---------- */
@@ -209,7 +209,7 @@ if (!cache || !cache.shops) { cache = seedData(); LS.set('jpd_cache', cache); }
 function persist(){ LS.set('jpd_cache', cache); }
 var DEFAULT_SETTINGS = {
   id: 'app',
-  app_name: '忠鍵工業點餐', app_sub: '員工餐廳 · 線上點餐 · 快速取餐',
+  app_name: '忠鍵工業點餐app', app_sub: '員工餐廳 · 線上點餐 · 快速取餐',
   logo_char: '忠', section_title: '為您推薦',
   admin_user: 'admin', admin_pass: 'admin123',
   gold1: '#f7d878', gold2: '#e9b23f', gold_tx: '#7a5200',
