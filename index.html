@@ -166,8 +166,8 @@ body.offline .offbar{display:block}
    未配置时应用自动运行在「本地模式」，全部数据存 localStorage，功能完整可演示。
 ===================================================================== */
 var CONFIG = {
-  SUPABASE_URL: '',          // 例如 'https://xxxx.supabase.co'
-  SUPABASE_ANON_KEY: ''      // 例如 'eyJhbGciOi...'
+  SUPABASE_URL: 'https://jbrtneprhbkseqcmzhup.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_d-cj8esvrTQ4wGQ7Fs2Xow_0vHZLNEC'
 };
 /* 後台帳號密碼與全站所有欄位（品牌、副標、Logo、主題色、狀態文字等）
    皆可於後台「设置」分頁自定義編輯；未連 Supabase 時存於瀏覽器本地。 */
@@ -703,7 +703,10 @@ var SQL_SCHEMA =
 "alter table settings enable row level security;\n" +
 "create policy pub_sel on settings for select using (true);\n" +
 "create policy pub_all on settings for all using (true) with check (true);\n" +
-"-- 存储桶：Storage 页面新建两个 Public 桶：images 与 docs\n";
+"-- 存储桶：自动建立 public 桶 images 与 docs（含匿名读写策略）\n" +
+"insert into storage.buckets (id, name, public) values ('images','images',true) on conflict (id) do nothing;\n" +
+"insert into storage.buckets (id, name, public) values ('docs','docs',true) on conflict (id) do nothing;\n" +
+"create policy stor_all on storage.objects for all using (bucket_id in ('images','docs')) with check (bucket_id in ('images','docs'));\n";
 var SW_SRC =
 "var CACHE='jpd-v1';\n" +
 "self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(['./'])}))});\n" +
@@ -735,7 +738,8 @@ function adminSettings(){
     '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" data-act="backup-export">下载备份</button>' +
     '<button class="btn btn-ghost btn-sm" data-act="backup-import">还原备份</button>' +
     '<input type="file" id="backupFile" accept=".json,application/json" style="display:none"></div></div>' +
-    '<div class="panel"><div class="kv"><b>① 连接 Supabase</b><br>编辑本文件顶部 CONFIG，填入 SUPABASE_URL 与 SUPABASE_ANON_KEY；再在 Supabase SQL Editor 执行下方建表 SQL，并在 Storage 新建 public 桶 <code>images</code>、<code>docs</code>。未配置时应用自动使用本地模式，设置存于浏览器。</div></div>' +
+    '<div class="panel"><div class="kv"><b>① 连接 Supabase</b><br>本文件已内置金鑰。在 Supabase 後台「SQL Editor」新建查询，粘贴下方③的建表 SQL 并点 Run（会同时建好 images / docs 两个 public 桶）。执行后点下方按钮，把本机资料上传到云端，所有装置即同步。</div>' +
+    (cloudOk() ? '<button class="btn btn-gold btn-sm" style="margin-top:8px" data-act="push-local">⬆ 把本机资料上传到云端</button>' : '<div class="hint" style="margin-top:8px">目前为本地模式（未配置或离线）。</div>') + '</div>' +
     '<div class="panel"><div class="kv"><b>② 完整离线（可选）</b><br>本文件已内嵌全部 CSS/JS 与 manifest，可直接安装到主屏幕。若需 Service Worker 离线缓存，将下方代码保存为同目录 <code>sw.js</code>（唯一可选的附加文件）：</div>' +
     '<textarea class="sqlbox" readonly style="min-height:120px;margin-top:8px">' + esc(SW_SRC) + '</textarea>' +
     '<button class="btn btn-ghost btn-sm" style="margin-top:8px" data-act="copy-sw">复制 sw.js 代码</button></div>' +
@@ -832,7 +836,25 @@ document.addEventListener('click', function(e){
   else if (act === 'copy-sw') { copyText(SW_SRC, 'sw.js 代码已复制'); }
   else if (act === 'backup-export') { exportBackup(); }
   else if (act === 'backup-import') { var bf = document.getElementById('backupFile'); if (bf) bf.click(); }
+  else if (act === 'push-local') { pushLocal(); }
 });
+function pushLocal(){
+  if (!cloudOk()) { toast('未连接云端'); return; }
+  toast('上传中…');
+  (async function(){
+    for (var i = 0; i < TBL.length; i++) {
+      var t = TBL[i];
+      for (var j = 0; j < cache[t].length; j++) {
+        var r = await sb().from(t).upsert(cache[t][j]);
+        if (r && r.error) { toast('上传失败：' + r.error.message); return; }
+      }
+    }
+    var rs = await sb().from('settings').upsert(cache.settings);
+    if (rs && rs.error) { toast('设置上传失败：' + rs.error.message); return; }
+    toast('本机资料已上传到云端');
+    refreshAll();
+  })();
+}
 function exportBackup(){
   var blob = new Blob([JSON.stringify(cache, null, 2)], { type: 'application/json' });
   var a = document.createElement('a');
