@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f6f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="忠鍵工業點餐">
+<title>忠鍵工業點餐</title>
+<style>
+:root{--g1:#f7d878;--g2:#e9b23f;--gtx:#7a5200;--p1:#ff8a3d;--p2:#ff5f2e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#1c1f23;font-size:15px}
+#app{max-width:640px;margin:0 auto;min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+img{display:block}
+button{font-family:inherit}
+input,select,textarea{font-family:inherit}
+
+/* ---------- 顶部 ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 0 rgba(31,35,41,.08)}
+.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--gtx);font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 6px var(--g2)}
+.brandwrap{flex:1;min-width:0}
+.brand{font-size:18px;font-weight:800;letter-spacing:.5px;white-space:nowrap;line-height:1.2}
+.brand-sub{font-size:11px;color:#98a0a8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{border:none;background:#ebedf0;border-radius:50%;width:36px;height:36px;font-size:16px;flex:none;cursor:pointer}
+
+/* ---------- 分类 chips ---------- */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 14px 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;background:#fff;border:1px solid #e3e5e8;border-radius:16px;padding:6px 15px;font-size:13px;color:#55595f;cursor:pointer}
+.chip.on{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2);color:var(--gtx);font-weight:700}
+
+/* ---------- 区块标题 ---------- */
+.section-title{font-size:22px;font-weight:800;margin:14px 14px 12px;color:#1c1f23}
+
+/* ---------- 店铺卡片（参考设计稿） ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px}
+.card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(31,35,41,.06);cursor:pointer}
+.thumb{position:relative;aspect-ratio:16/10;background:#e8eaed;display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:0;left:0;background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 100%);color:var(--gtx);font-size:12px;font-weight:700;padding:4px 11px;border-radius:10px 0 8px 0;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.card h3{margin:10px 12px 8px;font-size:17px;font-weight:700;color:#1c1f23;line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 12px 12px}
+.tag{background:#ececef;color:#64686e;font-size:12px;padding:4px 10px;border-radius:4px}
+
+/* ---------- 按钮 ---------- */
+.btn{border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 3px 8px rgba(255,95,46,.3)}
+.btn-gold{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--gtx)}
+.btn-ghost{background:#fff;border:1px solid #dcdfe3;color:#55595f}
+.btn-danger{background:#fff;border:1px solid #f0c9c9;color:#d64545}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-block{width:100%}
+
+/* ---------- 店铺详情 / 菜品 ---------- */
+.shop-hero{position:relative;aspect-ratio:21/9;background:#e8eaed;display:flex;align-items:center;justify-content:center;font-size:70px;overflow:hidden}
+.shop-hero img{width:100%;height:100%;object-fit:cover}
+.shop-info{background:#fff;padding:14px;margin:-18px 14px 12px;border-radius:10px;position:relative;box-shadow:0 2px 8px rgba(31,35,41,.08)}
+.shop-info h2{margin:0 0 8px;font-size:20px;font-weight:800}
+.dish{display:flex;gap:12px;padding:12px;background:#fff;border-radius:10px;margin:0 14px 10px;box-shadow:0 1px 4px rgba(31,35,41,.05)}
+.dish .thumb{width:86px;height:86px;flex:none;border-radius:8px;font-size:36px;aspect-ratio:auto}
+.dish-body{flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.dish-name{font-size:15px;font-weight:700}
+.dish-desc{font-size:12px;color:#98a0a8;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dish-foot{display:flex;align-items:center;justify-content:space-between}
+.price{color:var(--p2);font-weight:800;font-size:16px}
+.price small{font-size:11px;font-weight:600}
+.step{display:flex;align-items:center;gap:10px}
+.step button{width:26px;height:26px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.step button.minus{background:#fff;border:1px solid #dcdfe3;color:#666}
+.step span{min-width:14px;text-align:center;font-weight:700}
+.backbar{position:sticky;top:0;z-index:20;background:#f5f6f8;padding:12px 14px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+
+/* ---------- 购物车条 ---------- */
+.cartbar{position:fixed;bottom:calc(58px + env(safe-area-inset-bottom));left:0;right:0;max-width:640px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px;background:#fff;border-top:1px solid #ececef;z-index:25}
+.cartbar .info{flex:1;font-size:14px}
+.cartbar .info b{color:var(--p2)}
+
+/* ---------- 表单 ---------- */
+.panel{background:#fff;border-radius:10px;padding:16px 14px;margin:0 14px 12px;box-shadow:0 1px 4px rgba(31,35,41,.05)}
+.field{margin-bottom:12px}
+.field label{font-size:13px;color:#666a70;display:block;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #dcdfe3;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;background:#fff;color:#1c1f23}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g2)}
+.row2{display:flex;gap:10px}
+.row2 .field{flex:1}
+
+/* ---------- 订单 ---------- */
+.order{background:#fff;border-radius:10px;padding:14px;margin:0 14px 12px;box-shadow:0 1px 4px rgba(31,35,41,.05)}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.order-code{font-size:13px;color:#98a0a8}
+.status{font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
+.status.pending{background:#fff4e5;color:#c77700}
+.status.cooking{background:#e8f4ff;color:#1677c9}
+.status.done{background:#e8f8ee;color:#1d9e57}
+.status.cancelled{background:#fdecec;color:#d64545}
+.order-items{font-size:13px;color:#55595f;line-height:1.7;border-top:1px dashed #e3e5e8;padding-top:8px}
+.order-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:#98a0a8}
+
+/* ---------- 底部导航 ---------- */
+.tabbar{position:fixed;bottom:0;left:0;right:0;max-width:640px;margin:0 auto;background:#fff;display:flex;border-top:1px solid #ececef;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;text-align:center;padding:7px 0 8px;font-size:11px;color:#98a0a8;cursor:pointer;position:relative;border:none;background:none}
+.tab .ico{font-size:21px;display:block;line-height:1.25}
+.tab.on{color:var(--p2);font-weight:700}
+.tab .dot{position:absolute;top:4px;left:50%;margin-left:6px;background:var(--p2);color:#fff;font-size:10px;font-weight:700;border-radius:9px;padding:0 5px;line-height:16px}
+.bar-search{flex:1;background:#ebedf0;border:none;border-radius:18px;padding:10px 16px;font-size:14px;outline:none;color:#1c1f23;margin:8px 0 8px 12px}
+.bar-search::placeholder{color:#9aa0a6}
+.bar-cancel{border:none;background:none;color:#666a70;font-size:13px;padding:0 14px;cursor:pointer;flex:none}
+
+/* ---------- 管理后台 ---------- */
+.admin-head{background:#1c1f23;color:#fff;padding:16px 14px;display:flex;align-items:center;justify-content:space-between}
+.admin-head h1{margin:0;font-size:17px;font-weight:800}
+.admin-head .sub{font-size:11px;color:#9aa0a6;margin-top:2px}
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;background:#1c1f23}
+.admin-tabs .chip{background:#2a2e35;border-color:#3a3f47;color:#c9cdd3}
+.admin-tabs .chip.on{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2);color:var(--gtx)}
+.admin-body{padding:14px 14px 30px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:13px;box-shadow:0 1px 4px rgba(31,35,41,.05)}
+th,td{padding:9px 8px;border-bottom:1px solid #f0f1f3;text-align:left;vertical-align:middle}
+th{background:#fafbfc;color:#666a70;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td .thumb{width:40px;height:40px;border-radius:6px;font-size:18px;aspect-ratio:auto}
+.tbl-wrap{overflow-x:auto;margin-bottom:14px}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#1c1f23,#2a2e35)}
+.login-card{background:#fff;border-radius:14px;padding:28px 22px;width:100%;max-width:340px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.login-card h1{margin:0 0 4px;font-size:20px;font-weight:800;text-align:center}
+.login-card p{margin:0 0 20px;font-size:12px;color:#98a0a8;text-align:center}
+.sqlbox{width:100%;min-height:220px;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.6;border:1px solid #dcdfe3;border-radius:8px;padding:10px;background:#fafbfc;color:#333}
+.hint{font-size:12px;color:#98a0a8;line-height:1.7;margin:8px 0}
+.kv{font-size:13px;color:#55595f;line-height:1.9}
+
+/* ---------- 其他 ---------- */
+.offbar{position:fixed;top:0;left:0;right:0;background:#fff3cd;color:#8a6d1a;text-align:center;font-size:12px;padding:5px;z-index:60;display:none}
+body.offline .offbar{display:block}
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(28,31,35,.92);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;pointer-events:none;transition:opacity .25s;max-width:80%;text-align:center}
+#toast.show{opacity:1}
+.empty{text-align:center;color:#b0b6bd;padding:50px 0;font-size:14px}
+.empty .big{font-size:44px;display:block;margin-bottom:10px}
+.installbtn{display:none}
+</style>
+</head>
+<body>
+<div class="offbar" id="offbar">离线模式：显示本地缓存数据</div>
+<div id="app"></div>
+<div id="toast"></div>
+
+<!-- Supabase SDK（CDN 引入；未配置或离线时自动降级为本地模式） -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" onerror="window.__sbLoadFail=true"></script>
+
+<script>
+/* =====================================================================
+   配置区：部署前请填写 Supabase 地址与 anon key（后台「设置」页有建表 SQL）
+   未配置时应用自动运行在「本地模式」，全部数据存 localStorage，功能完整可演示。
+===================================================================== */
+var CONFIG = {
+  SUPABASE_URL: '',          // 例如 'https://xxxx.supabase.co'
+  SUPABASE_ANON_KEY: ''      // 例如 'eyJhbGciOi...'
+};
+/* 後台帳號密碼與全站所有欄位（品牌、副標、Logo、主題色、狀態文字等）
+   皆可於後台「设置」分頁自定義編輯；未連 Supabase 時存於瀏覽器本地。 */
+
+/* ---------------- 工具 ---------------- */
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function fmt(n){ var v = Number(n || 0); return (v % 1 === 0 ? v : v.toFixed(2)); }
+var LS = {
+  get: function(k, d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set: function(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+var toastTimer = null;
+function toast(msg){ var t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200); }
+
+/* ---------------- 种子数据（与设计稿一致） ---------------- */
+function seedData(){
+  return {
+    shops: [
+      { id:'s1', name:'喵小鱼烤鱼店',   tags:['烤鱼','聚餐','年糕'], badge:'金牌店家', emoji:'🐟', image:'', descr:'活鱼现烤，麻辣鲜香', created_at:'2026-01-01T00:00:00Z' },
+      { id:'s2', name:'快乐星球咖啡屋', tags:['烘焙','甜点'],       badge:'金牌店家', emoji:'☕', image:'', descr:'手作烘焙与精品咖啡', created_at:'2026-01-02T00:00:00Z' },
+      { id:'s3', name:'奇妙炸鸡店',     tags:['烤鱼','聚餐','年糕'], badge:'金牌店家', emoji:'🍗', image:'', descr:'外酥里嫩，现炸现卖', created_at:'2026-01-03T00:00:00Z' },
+      { id:'s4', name:'北海道特色寿司店', tags:['烘焙','甜点'],     badge:'金牌店家', emoji:'🍣', image:'', descr:'每日空运新鲜渔获', created_at:'2026-01-04T00:00:00Z' }
+    ],
+    dishes: [
+      { id:'d1', shop_id:'s1', name:'招牌麻辣烤鱼', price:88, emoji:'🐟', image:'', descr:'整条活鱼 + 秘制麻辣酱', created_at:'2026-01-01T00:00:00Z' },
+      { id:'d2', shop_id:'s1', name:'蒜香烤鱼',     price:92, emoji:'', image:'', descr:'蒜香浓郁，不辣也香', created_at:'2026-01-01T00:00:00Z' },
+      { id:'d3', shop_id:'s1', name:'年糕串',       price:12, emoji:'🍢', image:'', descr:'软糯 Q 弹，3 串/份', created_at:'2026-01-01T00:00:00Z' },
+      { id:'d4', shop_id:'s1', name:'冰镇可乐',     price:6,  emoji:'🥤', image:'', descr:'330ml 罐装', created_at:'2026-01-01T00:00:00Z' },
+      { id:'d5', shop_id:'s2', name:'黄油可颂',     price:18, emoji:'🥐', image:'', descr:'法式手作，层层酥脆', created_at:'2026-01-02T00:00:00Z' },
+      { id:'d6', shop_id:'s2', name:'拿铁咖啡',     price:22, emoji:'☕', image:'', descr:'中深烘豆，奶香顺滑', created_at:'2026-01-02T00:00:00Z' },
+      { id:'d7', shop_id:'s2', name:'草莓奶油蛋糕', price:28, emoji:'🍰', image:'', descr:'当季草莓 + 动物奶油', created_at:'2026-01-02T00:00:00Z' },
+      { id:'d8', shop_id:'s3', name:'黄金脆皮炸鸡', price:26, emoji:'🍗', image:'', descr:'鳞片脆皮，锁汁鲜嫩', created_at:'2026-01-03T00:00:00Z' },
+      { id:'d9', shop_id:'s3', name:'薯条',         price:12, emoji:'🍟', image:'', descr:'现炸粗薯，附番茄酱', created_at:'2026-01-03T00:00:00Z' },
+      { id:'d10', shop_id:'s3', name:'鸡腿堡',      price:18, emoji:'🍔', image:'', descr:'整块鸡腿肉排', created_at:'2026-01-03T00:00:00Z' },
+      { id:'d11', shop_id:'s4', name:'三文鱼寿司',  price:38, emoji:'🍣', image:'', descr:'6 贯/份', created_at:'2026-01-04T00:00:00Z' },
+      { id:'d12', shop_id:'s4', name:'寿司拼盘',    price:68, emoji:'🍱', image:'', descr:'12 贯主厨精选', created_at:'2026-01-04T00:00:00Z' },
+      { id:'d13', shop_id:'s4', name:'味噌汤',      price:10, emoji:'🥣', image:'', descr:'豆腐 + 裙带菜', created_at:'2026-01-04T00:00:00Z' }
+    ],
+    orders: [],
+    files: []
+  };
+}
+var TBL = ['shops', 'dishes', 'orders', 'files'];
+var cache = LS.get('jpd_cache', null);
+if (!cache || !cache.shops) { cache = seedData(); LS.set('jpd_cache', cache); }
+function persist(){ LS.set('jpd_cache', cache); }
+var DEFAULT_SETTINGS = {
+  id: 'app',
+  app_name: '忠鍵工業點餐', app_sub: '員工餐廳 · 線上點餐 · 快速取餐',
+  logo_char: '忠', section_title: '為您推薦',
+  admin_user: 'admin', admin_pass: 'admin123',
+  gold1: '#f7d878', gold2: '#e9b23f', gold_tx: '#7a5200',
+  primary1: '#ff8a3d', primary2: '#ff5f2e',
+  st_pending: '待处理', st_cooking: '制作中', st_done: '已完成', st_cancelled: '已取消'
+};
+if (!cache.settings || typeof cache.settings !== 'object') cache.settings = {};
+cache.settings = Object.assign({}, DEFAULT_SETTINGS, cache.settings);
+function settings(){ return cache.settings; }
+var STATUS_KEYS = ['pending', 'cooking', 'done', 'cancelled'];
+function stLabel(k){
+  var s = settings();
+  return ({ pending: s.st_pending, cooking: s.st_cooking, done: s.st_done, cancelled: s.st_cancelled })[k] || k;
+}
+function applyTheme(){
+  var s = settings(), st = document.documentElement.style;
+  st.setProperty('--g1', s.gold1); st.setProperty('--g2', s.gold2); st.setProperty('--gtx', s.gold_tx);
+  st.setProperty('--p1', s.primary1); st.setProperty('--p2', s.primary2);
+}
+async function saveSettings(row){
+  row.id = 'app';
+  if (cloudOk()) {
+    var r = await sb().from('settings').upsert(row);
+    if (r && r.error) toast('云端保存失败：' + r.error.message);
+  }
+  cache.settings = Object.assign({}, cache.settings, row);
+  persist(); applyTheme(); setupPWA(); render();
+  toast('设置已保存');
+}
+
+/* ---------------- Supabase 数据层（离线自动降级本地） ---------------- */
+var _sb = null;
+function sb(){
+  if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) return null;
+  if (window.__sbLoadFail || typeof window.supabase === 'undefined') return null;
+  if (!_sb) { try { _sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); } catch(e){ return null; } }
+  return _sb;
+}
+function cloudOk(){ return !!sb() && navigator.onLine; }
+function upsertCache(t, row){
+  var i = -1;
+  for (var k = 0; k < cache[t].length; k++) if (cache[t][k].id === row.id) { i = k; break; }
+  if (i >= 0) cache[t][i] = Object.assign({}, cache[t][i], row); else cache[t].push(row);
+}
+async function refreshAll(){
+  if (!cloudOk()) return;
+  var changed = false;
+  for (var i = 0; i < TBL.length; i++) {
+    var t = TBL[i];
+    var res = await sb().from(t).select('*');
+    if (res && !res.error && Array.isArray(res.data)) { cache[t] = res.data; changed = true; }
+  }
+  var rs = await sb().from('settings').select('*').eq('id', 'app');
+  if (rs && !rs.error && rs.data && rs.data[0]) { cache.settings = Object.assign({}, DEFAULT_SETTINGS, rs.data[0]); changed = true; }
+  if (changed) { persist(); applyTheme(); render(); }
+}
+async function dbAdd(t, row){
+  row.id = row.id || uid();
+  row.created_at = row.created_at || new Date().toISOString();
+  if (cloudOk()) {
+    var res = await sb().from(t).insert(row).select();
+    if (res && !res.error && res.data && res.data[0]) row = res.data[0];
+    else if (res && res.error) toast('云端写入失败：' + res.error.message);
+  }
+  upsertCache(t, row); persist();
+  return row;
+}
+async function dbUpd(t, row){
+  if (cloudOk()) {
+    var res = await sb().from(t).update(row).eq('id', row.id);
+    if (res && res.error) toast('云端更新失败：' + res.error.message);
+  }
+  upsertCache(t, row); persist();
+}
+async function dbDel(t, id){
+  if (cloudOk()) {
+    var res = await sb().from(t).delete().eq('id', id);
+    if (res && res.error) toast('云端删除失败：' + res.error.message);
+  }
+  cache[t] = cache[t].filter(function(r){ return r.id !== id; });
+  persist(); render();
+}
+
+/* ---------------- 文件上传 / 下载 ---------------- */
+function readDataURL(file){
+  return new Promise(function(resolve, reject){
+    if (file.size > 4 * 1024 * 1024) { reject(new Error('本地模式文件需小于 4MB')); return; }
+    var r = new FileReader();
+    r.onload = function(){ resolve(r.result); };
+    r.onerror = function(){ reject(new Error('读取失败')); };
+    r.readAsDataURL(file);
+  });
+}
+async function uploadFile(file){
+  var kind = file.type && file.type.indexOf('image/') === 0 ? 'image' : 'doc';
+  if (cloudOk()) {
+    var bucket = kind === 'image' ? 'images' : 'docs';
+    var path = Date.now() + '_' + file.name;
+    var up = await sb().storage.from(bucket).upload(path, file, { contentType: file.type || 'application/octet-stream' });
+    if (!up.error) {
+      var pub = sb().storage.from(bucket).getPublicUrl(path);
+      return { url: pub.data.publicUrl, kind: kind };
+    }
+    toast('Supabase 上传失败（' + up.error.message + '），改用本地存储');
+  }
+  var url = await readDataURL(file);
+  return { url: url, kind: kind };
+}
+
+/* ---------------- 全局状态 ---------------- */
+var state = { chip: '全部', q: '', searchOpen: false, adminTab: 'shops', editShop: null, editDish: null, dishShopFilter: '', editOrder: null, editFile: null };
+var cart = LS.get('jpd_cart', { shop_id: null, items: {} });
+function saveCart(){ LS.set('jpd_cart', cart); }
+function deviceId(){ var d = LS.get('jpd_device', ''); if (!d) { d = uid(); LS.set('jpd_device', d); } return d; }
+function cartCount(){ var n = 0; for (var k in cart.items) n += cart.items[k]; return n; }
+function cartTotal(){ var t = 0; for (var id in cart.items) { var d = findDish(id); if (d) t += Number(d.price) * cart.items[id]; } return t; }
+function findDish(id){ for (var i = 0; i < cache.dishes.length; i++) if (cache.dishes[i].id === id) return cache.dishes[i]; return null; }
+function findShop(id){ for (var i = 0; i < cache.shops.length; i++) if (cache.shops[i].id === id) return cache.shops[i]; return null; }
+function isAdmin(){ return sessionStorage.getItem('jpd_admin') === '1'; }
+
+/* ---------------- 渲染：通用片段 ---------------- */
+function thumbHTML(item, cls){
+  var c = cls || 'thumb';
+  if (item && item.image) return '<div class="' + c + '"><img src="' + esc(item.image) + '" alt="' + esc(item.name || '') + '" loading="lazy"></div>';
+  return '<div class="' + c + '">' + esc((item && item.emoji) || '🍽️') + '</div>';
+}
+function tagsHTML(tags){
+  var arr = Array.isArray(tags) ? tags : String(tags || '').split(',');
+  return '<div class="tags">' + arr.filter(function(t){ return t; }).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>';
+}
+function shopCard(s){
+  return '<div class="card" data-act="open-shop" data-id="' + esc(s.id) + '">' +
+    '<div class="thumb">' + (s.image ? '<img src="' + esc(s.image) + '" alt="' + esc(s.name) + '" loading="lazy">' : esc(s.emoji || '🍽️')) +
+    (s.badge ? '<span class="badge">' + esc(s.badge) + '</span>' : '') + '</div>' +
+    '<h3>' + esc(s.name) + '</h3>' + tagsHTML(s.tags) + '</div>';
+}
+function filteredShops(){
+  return cache.shops.filter(function(s){
+    var okChip = state.chip === '全部' || (s.tags || []).indexOf(state.chip) >= 0;
+    var okQ = !state.q || s.name.indexOf(state.q) >= 0 || (s.tags || []).join(',').indexOf(state.q) >= 0;
+    return okChip && okQ;
+  });
+}
+function allTags(){
+  var set = [];
+  cache.shops.forEach(function(s){ (s.tags || []).forEach(function(t){ if (set.indexOf(t) < 0) set.push(t); }); });
+  return set;
+}
+
+/* ---------------- 视图：首页 ---------------- */
+function viewHome(){
+  var s = settings();
+  var chips = ['全部'].concat(allTags());
+  return '<div class="topbar">' +
+      '<div class="logo">' + esc(s.logo_char) + '</div>' +
+      '<div class="brandwrap"><div class="brand">' + esc(s.app_name) + '</div><div class="brand-sub">' + esc(s.app_sub) + '</div></div>' +
+      '<button class="iconbtn installbtn" id="installBtn" data-act="install" title="安装应用">⤓</button>' +
+    '</div>' +
+    '<div class="chips">' + chips.map(function(c){ return '<button class="chip' + (state.chip === c ? ' on' : '') + '" data-act="chip" data-id="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
+    '<div class="section-title">' + esc(s.section_title) + '</div>' +
+    '<div class="grid" id="shopGrid">' + shopGridHTML() + '</div>';
+}
+function shopGridHTML(){
+  var list = filteredShops();
+  if (!list.length) return '<div class="empty" style="grid-column:1/-1"><span class="big"></span>没有找到相关店铺</div>';
+  return list.map(shopCard).join('');
+}
+
+/* ---------------- 视图：店铺详情 ---------------- */
+function viewShop(id){
+  var s = findShop(id);
+  if (!s) return '<div class="empty"><span class="big">😕</span>店铺不存在</div>';
+  var dishes = cache.dishes.filter(function(d){ return d.shop_id === id; });
+  return '<div class="backbar"><button class="iconbtn" data-act="go" data-hash="#/">‹</button>' + esc(s.name) + '</div>' +
+    '<div class="shop-hero">' + (s.image ? '<img src="' + esc(s.image) + '" alt="">' : esc(s.emoji || '🍽️')) +
+      (s.badge ? '<span class="badge">' + esc(s.badge) + '</span>' : '') + '</div>' +
+    '<div class="shop-info"><h2>' + esc(s.name) + '</h2>' + tagsHTML(s.tags) +
+      '<div style="font-size:13px;color:#98a0a8;margin-top:2px">' + esc(s.descr || '') + '</div></div>' +
+    '<div class="section-title" style="font-size:18px">菜单</div>' +
+    (dishes.length ? dishes.map(dishRow).join('') : '<div class="empty"><span class="big">🍽️</span>暂无菜品</div>') +
+    cartBarHTML();
+}
+function dishRow(d){
+  var q = cart.items[d.id] || 0;
+  return '<div class="dish">' + thumbHTML(d) +
+    '<div class="dish-body"><div><div class="dish-name">' + esc(d.name) + '</div><div class="dish-desc">' + esc(d.descr || '') + '</div></div>' +
+    '<div class="dish-foot"><div class="price"><small>¥</small>' + fmt(d.price) + '</div>' +
+    (q ? '<div class="step"><button class="minus" data-act="sub" data-id="' + d.id + '">−</button><span>' + q + '</span><button data-act="add" data-id="' + d.id + '">+</button></div>'
+       : '<button class="btn btn-primary btn-sm" data-act="add" data-id="' + d.id + '" style="border-radius:50%;width:26px;height:26px;padding:0">+</button>') +
+    '</div></div></div>';
+}
+function cartBarHTML(){
+  var n = cartCount();
+  if (!n) return '';
+  return '<div class="cartbar"><div class="info">已选 <b>' + n + '</b> 件　合计 <b>¥' + fmt(cartTotal()) + '</b></div>' +
+    '<button class="btn btn-ghost btn-sm" data-act="clear-cart">清空</button>' +
+    '<button class="btn btn-primary btn-sm" data-act="go" data-hash="#/cart">去结算</button></div>';
+}
+
+/* ---------------- 视图：购物车 / 下单 ---------------- */
+function viewCart(){
+  var ids = Object.keys(cart.items).filter(function(k){ return cart.items[k] > 0; });
+  if (!ids.length) return '<div class="backbar"><button class="iconbtn" data-act="go" data-hash="#/">‹</button>购物车</div>' +
+    '<div class="empty"><span class="big">🛒</span>购物车是空的<br><br><button class="btn btn-gold" data-act="go" data-hash="#/">去逛逛</button></div>';
+  var cust = LS.get('jpd_customer', {});
+  var rows = ids.map(function(id){
+    var d = findDish(id); if (!d) return '';
+    return '<div class="dish">' + thumbHTML(d) +
+      '<div class="dish-body"><div><div class="dish-name">' + esc(d.name) + '</div><div class="dish-desc">' + esc((findShop(d.shop_id) || {}).name || '') + '</div></div>' +
+      '<div class="dish-foot"><div class="price"><small>¥</small>' + fmt(d.price) + '</div>' +
+      '<div class="step"><button class="minus" data-act="sub" data-id="' + id + '">−</button><span>' + cart.items[id] + '</span><button data-act="add" data-id="' + id + '">+</button></div></div></div></div>';
+  }).join('');
+  return '<div class="backbar"><button class="iconbtn" data-act="go" data-hash="#/">‹</button>确认订单</div>' + rows +
+    '<form data-form="order"><div class="panel">' +
+      '<div class="field"><label>取餐姓名</label><input name="name" required placeholder="怎么称呼您" value="' + esc(cust.name || '') + '"></div>' +
+      '<div class="row2"><div class="field"><label>手机号</label><input name="phone" required inputmode="numeric" placeholder="联系手机" value="' + esc(cust.phone || '') + '"></div>' +
+      '<div class="field"><label>桌号 / 取餐方式</label><input name="table" placeholder="如 A12 或 自取" value="' + esc(cust.table || '') + '"></div></div>' +
+      '<div class="field"><label>备注</label><textarea name="remark" rows="2" placeholder="口味、忌口等（可选）"></textarea></div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="color:#666a70;font-size:14px">合计</span><span class="price" style="font-size:20px"><small>¥</small>' + fmt(cartTotal()) + '</span></div>' +
+      '<button class="btn btn-primary btn-block" type="submit">提交订单</button>' +
+    '</div></form>';
+}
+
+/* ---------------- 视图：我的订单 ---------------- */
+function viewOrders(){
+  var mine = cache.orders.filter(function(o){ return o.customer && o.customer.device === deviceId(); })
+    .sort(function(a, b){ return (b.created_at || '').localeCompare(a.created_at || ''); });
+  var list = mine.map(function(o){
+    return '<div class="order"><div class="order-head"><span class="order-code">' + esc(o.code || o.id) + '</span><span class="status ' + esc(o.status) + '">' + esc(stLabel(o.status)) + '</span></div>' +
+      '<div class="order-items">' + (o.items || []).map(function(it){ return esc(it.name) + ' ×' + it.qty; }).join('　') + '</div>' +
+      '<div class="order-foot"><span>' + esc((o.customer && o.customer.table) || '') + '　' + new Date(o.created_at).toLocaleString() + '</span><b class="price"><small>¥</small>' + fmt(o.total) + '</b></div></div>';
+  }).join('');
+  return '<div class="backbar" style="font-size:18px;font-weight:800">我的订单</div>' + (list || '<div class="empty"><span class="big">🧾</span>还没有订单</div>');
+}
+
+/* ---------------- 视图：后台登录 ---------------- */
+function viewLogin(){
+  return '<div class="login-wrap"><form class="login-card" data-form="login">' +
+    '<h1>🔐 管理后台</h1><p>Staff Only · 请输入账号密码</p>' +
+    '<div class="field"><label>账号</label><input name="user" required autocomplete="username"></div>' +
+    '<div class="field"><label>密码</label><input name="pass" type="password" required autocomplete="current-password"></div>' +
+    '<button class="btn btn-gold btn-block" type="submit">登 录</button>' +
+    '<p style="margin:14px 0 0"><a href="#/" style="color:#b0b6bd;font-size:12px;text-decoration:none">← 返回前台</a></p>' +
+    '</form></div>';
+}
+
+/* ---------------- 视图：后台主体 ---------------- */
+function viewAdmin(){
+  var tabs = [['shops','店铺'], ['dishes','菜品'], ['orders','订单'], ['files','文件'], ['settings','设置']];
+  var body = '';
+  if (state.adminTab === 'shops') body = adminShops();
+  else if (state.adminTab === 'dishes') body = adminDishes();
+  else if (state.adminTab === 'orders') body = adminOrders();
+  else if (state.adminTab === 'files') body = adminFiles();
+  else body = adminSettings();
+  return '<div class="admin-head"><div><h1>' + esc(settings().app_name) + ' · 管理后台</h1><div class="sub">' + (cloudOk() ? '☁️ 已连接 Supabase' : '💾 本地模式（未配置 Supabase 或离线）') + '</div></div>' +
+    '<button class="btn btn-ghost btn-sm" data-act="logout">退出</button></div>' +
+    '<div class="admin-tabs">' + tabs.map(function(t){ return '<button class="chip' + (state.adminTab === t[0] ? ' on' : '') + '" data-act="admin-tab" data-id="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' +
+    '<div class="admin-body">' + body + '</div>';
+}
+function adminShops(){
+  var form = '';
+  if (state.editShop) {
+    var s = state.editShop === 'new' ? { name:'', tags:[], badge:'金牌店家', emoji:'🍽️', image:'', descr:'' } : findShop(state.editShop);
+    if (s) form = '<form data-form="shop" class="panel"><div class="field"><label>店铺名称</label><input name="name" required value="' + esc(s.name) + '"></div>' +
+      '<div class="field"><label>标签（逗号分隔）</label><input name="tags" value="' + esc((s.tags || []).join(',')) + '"></div>' +
+      '<div class="row2"><div class="field"><label>角标文字</label><input name="badge" value="' + esc(s.badge || '') + '"></div>' +
+      '<div class="field"><label>表情图标（无图片时）</label><input name="emoji" value="' + esc(s.emoji || '') + '"></div></div>' +
+      '<div class="field"><label>店铺图片（粘贴 URL 或上传更换，留空用表情图标）</label><input name="image" id="shop-image" placeholder="https://…" value="' + esc(s.image || '') + '">' +
+      '<input type="file" accept="image/*" data-target="shop-image" style="margin-top:6px;font-size:12px">' +
+      (s.image ? '<img src="' + esc(s.image) + '" style="width:70px;height:46px;object-fit:cover;border-radius:6px;margin-top:6px">' : '') + '</div>' +
+      '<div class="field"><label>简介</label><textarea name="descr" rows="2">' + esc(s.descr || '') + '</textarea></div>' +
+      '<div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">保存</button><button class="btn btn-ghost" type="button" data-act="cancel-shop">取消</button></div></form>';
+  }
+  var rows = cache.shops.map(function(s){
+    return '<tr><td>' + thumbHTML(s) + '</td><td>' + esc(s.name) + '<br><span style="color:#98a0a8;font-size:11px">' + esc((s.tags || []).join(' / ')) + '</span></td>' +
+      '<td><button class="btn btn-ghost btn-sm" data-act="edit-shop" data-id="' + s.id + '">编辑</button> ' +
+      '<button class="btn btn-danger btn-sm" data-act="del-shop" data-id="' + s.id + '">删除</button></td></tr>';
+  }).join('');
+  return form + '<button class="btn btn-gold btn-sm" data-act="new-shop" style="margin-bottom:12px">＋ 新增店铺</button>' +
+    '<div class="tbl-wrap"><table><tr><th>图</th><th>店铺</th><th>操作</th></tr>' + rows + '</table></div>';
+}
+function adminDishes(){
+  var shopsOpts = cache.shops.map(function(s){ return '<option value="' + s.id + '">' + esc(s.name) + '</option>'; }).join('');
+  var form = '';
+  if (state.editDish) {
+    var d = state.editDish === 'new' ? { name:'', price:'', emoji:'🍽️', image:'', descr:'', shop_id: state.dishShopFilter || (cache.shops[0] || {}).id } : findDish(state.editDish);
+    if (d) form = '<form data-form="dish" class="panel"><div class="field"><label>所属店铺</label><select name="shop_id">' +
+      cache.shops.map(function(s){ return '<option value="' + s.id + '"' + (s.id === d.shop_id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="row2"><div class="field"><label>菜品名称</label><input name="name" required value="' + esc(d.name) + '"></div>' +
+      '<div class="field"><label>价格（元）</label><input name="price" type="number" step="0.01" min="0" required value="' + esc(d.price) + '"></div></div>' +
+      '<div class="field"><label>表情图标（无图片时）</label><input name="emoji" value="' + esc(d.emoji || '') + '"></div>' +
+      '<div class="field"><label>菜品图片（粘贴 URL 或上传更换，留空用表情图标）</label><input name="image" id="dish-image" placeholder="https://…" value="' + esc(d.image || '') + '">' +
+      '<input type="file" accept="image/*" data-target="dish-image" style="margin-top:6px;font-size:12px">' +
+      (d.image ? '<img src="' + esc(d.image) + '" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin-top:6px">' : '') + '</div>' +
+      '<div class="field"><label>描述</label><input name="descr" value="' + esc(d.descr || '') + '"></div>' +
+      '<div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">保存</button><button class="btn btn-ghost" type="button" data-act="cancel-dish">取消</button></div></form>';
+  }
+  var list = cache.dishes.filter(function(d){ return !state.dishShopFilter || d.shop_id === state.dishShopFilter; });
+  var rows = list.map(function(d){
+    return '<tr><td>' + thumbHTML(d) + '</td><td>' + esc(d.name) + '<br><span style="color:#98a0a8;font-size:11px">' + esc((findShop(d.shop_id) || {}).name || '') + '</span></td>' +
+      '<td class="price">¥' + fmt(d.price) + '</td>' +
+      '<td><button class="btn btn-ghost btn-sm" data-act="edit-dish" data-id="' + d.id + '">编辑</button> ' +
+      '<button class="btn btn-danger btn-sm" data-act="del-dish" data-id="' + d.id + '">删除</button></td></tr>';
+  }).join('');
+  return form + '<div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">' +
+    '<select data-filter-shop style="border:1px solid #dcdfe3;border-radius:8px;padding:8px;font-size:13px;background:#fff"><option value="">全部店铺</option>' + shopsOpts + '</select>' +
+    '<button class="btn btn-gold btn-sm" data-act="new-dish">＋ 新增菜品</button></div>' +
+    '<div class="tbl-wrap"><table><tr><th>图</th><th>菜品</th><th>价格</th><th>操作</th></tr>' + rows + '</table></div>';
+}
+function adminOrders(){
+  var form = '';
+  if (state.editOrder) {
+    var o = null;
+    for (var i = 0; i < cache.orders.length; i++) if (cache.orders[i].id === state.editOrder) o = cache.orders[i];
+    if (o) {
+      var c = o.customer || {};
+      form = '<form data-form="order-edit" class="panel"><div class="row2">' +
+        '<div class="field"><label>状态</label><select name="status">' + STATUS_KEYS.map(function(k){ return '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + esc(stLabel(k)) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label>合计金额</label><input name="total" type="number" step="0.01" min="0" value="' + esc(o.total) + '"></div></div>' +
+        '<div class="row2"><div class="field"><label>取餐姓名</label><input name="name" value="' + esc(c.name || '') + '"></div>' +
+        '<div class="field"><label>手机号</label><input name="phone" value="' + esc(c.phone || '') + '"></div></div>' +
+        '<div class="row2"><div class="field"><label>桌号 / 取餐方式</label><input name="table" value="' + esc(c.table || '') + '"></div>' +
+        '<div class="field"><label>备注</label><input name="remark" value="' + esc(c.remark || '') + '"></div></div>' +
+        '<div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">保存</button><button class="btn btn-ghost" type="button" data-act="cancel-order">取消</button></div></form>';
+    }
+  }
+  var list = cache.orders.slice().sort(function(a, b){ return (b.created_at || '').localeCompare(a.created_at || ''); });
+  if (!list.length) return form + '<div class="empty"><span class="big">🧾</span>暂无订单</div>';
+  var rows = list.map(function(od){
+    return '<tr><td>' + esc(od.code || od.id) + '<br><span style="color:#98a0a8;font-size:11px">' + new Date(od.created_at).toLocaleString() + '</span></td>' +
+      '<td>' + (od.items || []).map(function(it){ return esc(it.name) + '×' + it.qty; }).join('<br>') +
+      '<br><span style="color:#98a0a8;font-size:11px">' + esc((od.customer && od.customer.name) || '') + ' ' + esc((od.customer && od.customer.table) || '') + '</span></td>' +
+      '<td class="price">¥' + fmt(od.total) + '</td>' +
+      '<td><select data-status data-id="' + od.id + '" style="border:1px solid #dcdfe3;border-radius:6px;padding:5px;font-size:12px;background:#fff">' +
+      STATUS_KEYS.map(function(k){ return '<option value="' + k + '"' + (od.status === k ? ' selected' : '') + '>' + esc(stLabel(k)) + '</option>'; }).join('') + '</select></td>' +
+      '<td><button class="btn btn-ghost btn-sm" data-act="edit-order" data-id="' + od.id + '">编辑</button> ' +
+      '<button class="btn btn-danger btn-sm" data-act="del-order" data-id="' + od.id + '">删除</button></td></tr>';
+  }).join('');
+  return form + '<div class="tbl-wrap"><table><tr><th>单号</th><th>内容</th><th>金额</th><th>状态</th><th>操作</th></tr>' + rows + '</table></div>';
+}
+function adminFiles(){
+  var form = '';
+  if (state.editFile) {
+    var f0 = null;
+    for (var i = 0; i < cache.files.length; i++) if (cache.files[i].id === state.editFile) f0 = cache.files[i];
+    if (f0) form = '<form data-form="file-edit" class="panel"><div class="field"><label>文件名称</label><input name="name" required value="' + esc(f0.name) + '"></div>' +
+      '<div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">保存</button><button class="btn btn-ghost" type="button" data-act="cancel-file">取消</button></div></form>';
+  }
+  var rows = cache.files.map(function(f){
+    return '<tr><td>' + (f.kind === 'image' ? '🖼️' : '📄') + '</td><td>' + esc(f.name) + '<br><span style="color:#98a0a8;font-size:11px">' + (f.size ? (f.size / 1024).toFixed(1) + ' KB · ' : '') + new Date(f.created_at).toLocaleDateString() + '</span></td>' +
+      '<td><a class="btn btn-ghost btn-sm" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">下载</a> ' +
+      '<button class="btn btn-ghost btn-sm" data-act="edit-file" data-id="' + f.id + '">改名</button> ' +
+      '<button class="btn btn-danger btn-sm" data-act="del-file" data-id="' + f.id + '">删除</button></td></tr>';
+  }).join('');
+  return form + '<div class="panel"><label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ 上传图片 / docx 文件<input type="file" accept="image/*,.docx,.doc" data-target="" hidden></label>' +
+    '<div class="hint">配置 Supabase 后上传至 Storage 桶（images / docs）；本地模式以 base64 存于浏览器（≤4MB）。</div></div>' +
+    (rows ? '<div class="tbl-wrap"><table><tr><th></th><th>文件</th><th>操作</th></tr>' + rows + '</table></div>' : '<div class="empty"><span class="big">📁</span>暂无文件</div>');
+}
+var SQL_SCHEMA =
+"-- 在 Supabase SQL Editor 中执行以下建表语句：\n" +
+"create table if not exists shops (\n  id text primary key,\n  name text,\n  tags jsonb,\n  badge text,\n  emoji text,\n  image text,\n  descr text,\n  created_at timestamptz default now()\n);\n" +
+"create table if not exists dishes (\n  id text primary key,\n  shop_id text,\n  name text,\n  price numeric,\n  emoji text,\n  image text,\n  descr text,\n  created_at timestamptz default now()\n);\n" +
+"create table if not exists orders (\n  id text primary key,\n  code text,\n  shop_id text,\n  items jsonb,\n  total numeric,\n  customer jsonb,\n  status text default 'pending',\n  created_at timestamptz default now()\n);\n" +
+"create table if not exists files (\n  id text primary key,\n  name text,\n  kind text,\n  url text,\n  size int,\n  created_at timestamptz default now()\n);\n" +
+"-- 演示环境：开放匿名读写（生产请按需收紧）\n" +
+"alter table shops enable row level security;\n" +
+"alter table dishes enable row level security;\n" +
+"alter table orders enable row level security;\n" +
+"alter table files enable row level security;\n" +
+"create policy pub_sel on shops for select using (true);\n" +
+"create policy pub_all on shops for all using (true) with check (true);\n" +
+"create policy pub_sel on dishes for select using (true);\n" +
+"create policy pub_all on dishes for all using (true) with check (true);\n" +
+"create policy pub_sel on orders for select using (true);\n" +
+"create policy pub_all on orders for all using (true) with check (true);\n" +
+"create policy pub_sel on files for select using (true);\n" +
+"create policy pub_all on files for all using (true) with check (true);\n" +
+"create table if not exists settings (\n  id text primary key,\n  app_name text, app_sub text, logo_char text, section_title text,\n  admin_user text, admin_pass text,\n  gold1 text, gold2 text, gold_tx text, primary1 text, primary2 text,\n  st_pending text, st_cooking text, st_done text, st_cancelled text\n);\n" +
+"alter table settings enable row level security;\n" +
+"create policy pub_sel on settings for select using (true);\n" +
+"create policy pub_all on settings for all using (true) with check (true);\n" +
+"-- 存储桶：Storage 页面新建两个 Public 桶：images 与 docs\n";
+var SW_SRC =
+"var CACHE='jpd-v1';\n" +
+"self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(['./'])}))});\n" +
+"self.addEventListener('activate',function(e){e.waitUntil(clients.claim())});\n" +
+"self.addEventListener('fetch',function(e){e.respondWith(fetch(e.request).then(function(r){var cp=r.clone();caches.open(CACHE).then(function(c){c.put(e.request,cp)});return r}).catch(function(){return caches.match(e.request).then(function(m){return m||caches.match('./')})}))});\n";
+function adminSettings(){
+  var s = settings();
+  var form = '<form data-form="settings" class="panel"><div class="kv" style="margin-bottom:10px"><b>站点自定义（所有栏位皆可编辑，保存后前台即时生效）</b></div>' +
+    '<div class="row2"><div class="field"><label>应用名称</label><input name="app_name" required value="' + esc(s.app_name) + '"></div>' +
+    '<div class="field"><label>Logo 字</label><input name="logo_char" maxlength="2" value="' + esc(s.logo_char) + '"></div></div>' +
+    '<div class="field"><label>副标题</label><input name="app_sub" value="' + esc(s.app_sub) + '"></div>' +
+    '<div class="field"><label>首页区块标题</label><input name="section_title" value="' + esc(s.section_title) + '"></div>' +
+    '<div class="row2"><div class="field"><label>后台账号</label><input name="admin_user" required value="' + esc(s.admin_user) + '"></div>' +
+    '<div class="field"><label>后台密码</label><input name="admin_pass" required value="' + esc(s.admin_pass) + '"></div></div>' +
+    '<div class="kv" style="margin:4px 0 8px"><b>主题配色</b></div>' +
+    '<div class="row2"><div class="field"><label>金色渐层·亮</label><input name="gold1" type="color" value="' + esc(s.gold1) + '"></div>' +
+    '<div class="field"><label>金色渐层·暗</label><input name="gold2" type="color" value="' + esc(s.gold2) + '"></div>' +
+    '<div class="field"><label>金色文字</label><input name="gold_tx" type="color" value="' + esc(s.gold_tx) + '"></div></div>' +
+    '<div class="row2"><div class="field"><label>主色渐层·亮</label><input name="primary1" type="color" value="' + esc(s.primary1) + '"></div>' +
+    '<div class="field"><label>主色渐层·暗</label><input name="primary2" type="color" value="' + esc(s.primary2) + '"></div></div>' +
+    '<div class="kv" style="margin:4px 0 8px"><b>订单状态文字</b></div>' +
+    '<div class="row2"><div class="field"><label>待处理</label><input name="st_pending" value="' + esc(s.st_pending) + '"></div>' +
+    '<div class="field"><label>制作中</label><input name="st_cooking" value="' + esc(s.st_cooking) + '"></div></div>' +
+    '<div class="row2"><div class="field"><label>已完成</label><input name="st_done" value="' + esc(s.st_done) + '"></div>' +
+    '<div class="field"><label>已取消</label><input name="st_cancelled" value="' + esc(s.st_cancelled) + '"></div></div>' +
+    '<button class="btn btn-gold btn-block" type="submit">保存全部设置</button></form>';
+  return form +
+    '<div class="panel"><div class="kv"><b>① 连接 Supabase</b><br>编辑本文件顶部 CONFIG，填入 SUPABASE_URL 与 SUPABASE_ANON_KEY；再在 Supabase SQL Editor 执行下方建表 SQL，并在 Storage 新建 public 桶 <code>images</code>、<code>docs</code>。未配置时应用自动使用本地模式，设置存于浏览器。</div></div>' +
+    '<div class="panel"><div class="kv"><b>② 完整离线（可选）</b><br>本文件已内嵌全部 CSS/JS 与 manifest，可直接安装到主屏幕。若需 Service Worker 离线缓存，将下方代码保存为同目录 <code>sw.js</code>（唯一可选的附加文件）：</div>' +
+    '<textarea class="sqlbox" readonly style="min-height:120px;margin-top:8px">' + esc(SW_SRC) + '</textarea>' +
+    '<button class="btn btn-ghost btn-sm" style="margin-top:8px" data-act="copy-sw">复制 sw.js 代码</button></div>' +
+    '<div class="panel"><div class="kv"><b>③ 建表 SQL</b></div>' +
+    '<textarea class="sqlbox" readonly style="margin-top:8px">' + esc(SQL_SCHEMA) + '</textarea>' +
+    '<button class="btn btn-ghost btn-sm" style="margin-top:8px" data-act="copy-sql">复制 SQL</button></div>';
+}
+
+/* ---------------- 路由 & 渲染 ---------------- */
+function route(){
+  var h = location.hash || '#/';
+  var parts = h.replace(/^#\//, '').split('/').filter(Boolean);
+  return parts;
+}
+function render(){
+  var p = route();
+  document.title = settings().app_name;
+  var app = $('#app');
+  var html = '';
+  var showTab = true;
+  if (p[0] === 'admin') { showTab = false; html = isAdmin() ? viewAdmin() : viewLogin(); }
+  else if (p[0] === 'shop' && p[1]) html = viewShop(p[1]);
+  else if (p[0] === 'cart') html = viewCart();
+  else if (p[0] === 'orders') html = viewOrders();
+  else html = viewHome();
+  app.innerHTML = html + (showTab ? tabbarHTML(p[0] || 'home') : '');
+  if (state.searchOpen) {
+    var bs = $('#barSearch');
+    if (bs) { bs.focus(); try { bs.setSelectionRange(bs.value.length, bs.value.length); } catch(err){} }
+  }
+  document.body.classList.toggle('offline', !navigator.onLine);
+  var ib = $('#installBtn'); if (ib && deferredPrompt) ib.style.display = 'flex';
+  window.scrollTo(0, 0);
+}
+function tabbarHTML(cur){
+  var n = cartCount();
+  if (state.searchOpen) {
+    return '<div class="tabbar"><input class="bar-search" id="barSearch" placeholder="搜索店铺 / 标签" value="' + esc(state.q) + '">' +
+      '<button class="bar-cancel" data-act="close-search">取消</button></div>';
+  }
+  var tabs = [['home', '#/', '🏠', '首页'], ['search', '', '🔍', '搜索'], ['cart', '#/cart', '🛒', '购物车'], ['orders', '#/orders', '🧾', '订单']];
+  return '<div class="tabbar">' + tabs.map(function(t){
+    if (t[0] === 'search') return '<button class="tab" data-act="toggle-search"><span class="ico">🔍</span>搜索</button>';
+    return '<button class="tab' + (cur === t[0] ? ' on' : '') + '" data-act="go" data-hash="' + t[1] + '"><span class="ico">' + t[2] + '</span>' + t[3] +
+      (t[0] === 'cart' && n ? '<span class="dot">' + n + '</span>' : '') + '</button>';
+  }).join('') + '</div>';
+}
+
+/* ---------------- 交互：点击委托 ---------------- */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-act]');
+  if (!el) return;
+  var act = el.dataset.act, id = el.dataset.id;
+  if (act === 'go') { location.hash = el.dataset.hash; }
+  else if (act === 'chip') { state.chip = id; render(); }
+  else if (act === 'toggle-search') { state.searchOpen = true; render(); }
+  else if (act === 'close-search') { state.searchOpen = false; state.q = ''; render(); }
+  else if (act === 'open-shop') { location.hash = '#/shop/' + id; }
+  else if (act === 'add') { cartAdd(id); }
+  else if (act === 'sub') { cartSub(id); }
+  else if (act === 'clear-cart') { cart = { shop_id: null, items: {} }; saveCart(); render(); }
+  else if (act === 'install') { doInstall(); }
+  else if (act === 'admin-tab') { state.adminTab = id; state.editShop = null; state.editDish = null; state.editOrder = null; state.editFile = null; render(); }
+  else if (act === 'new-shop') { state.editShop = 'new'; render(); }
+  else if (act === 'edit-shop') { state.editShop = id; render(); }
+  else if (act === 'cancel-shop') { state.editShop = null; render(); }
+  else if (act === 'del-shop') { if (confirm('删除该店铺？其菜品将同时不可见。')) dbDel('shops', id); }
+  else if (act === 'new-dish') { state.editDish = 'new'; render(); }
+  else if (act === 'edit-dish') { state.editDish = id; render(); }
+  else if (act === 'cancel-dish') { state.editDish = null; render(); }
+  else if (act === 'del-dish') { if (confirm('删除该菜品？')) dbDel('dishes', id); }
+  else if (act === 'del-order') { if (confirm('删除该订单？')) dbDel('orders', id); }
+  else if (act === 'edit-order') { state.editOrder = id; render(); }
+  else if (act === 'cancel-order') { state.editOrder = null; render(); }
+  else if (act === 'del-file') { if (confirm('删除该文件记录？')) dbDel('files', id); }
+  else if (act === 'edit-file') { state.editFile = id; render(); }
+  else if (act === 'cancel-file') { state.editFile = null; render(); }
+  else if (act === 'logout') { sessionStorage.removeItem('jpd_admin'); location.hash = '#/'; render(); }
+  else if (act === 'copy-sql') { copyText(SQL_SCHEMA, 'SQL 已复制'); }
+  else if (act === 'copy-sw') { copyText(SW_SRC, 'sw.js 代码已复制'); }
+});
+function copyText(t, msg){
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ toast(msg); }, function(){ fallbackCopy(t, msg); });
+  else fallbackCopy(t, msg);
+}
+function fallbackCopy(t, msg){
+  var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast(msg); } catch(e){ toast('复制失败，请手动选择'); }
+  document.body.removeChild(ta);
+}
+
+/* ---------------- 交互：输入 & 变更委托 ---------------- */
+document.addEventListener('input', function(e){
+  if (e.target.id === 'barSearch') {
+    state.q = e.target.value.trim();
+    if (route()[0]) { location.hash = '#/'; }
+    else { var g2 = $('#shopGrid'); if (g2) g2.innerHTML = shopGridHTML(); }
+  }
+});
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if (t.matches('select[data-filter-shop]')) { state.dishShopFilter = t.value; render(); return; }
+  if (t.matches('select[data-status]')) { dbUpd('orders', { id: t.dataset.id, status: t.value }).then(render); return; }
+  if (t.matches('input[type=file]')) { handleFilePick(t); return; }
+});
+function handleFilePick(input){
+  var file = input.files && input.files[0];
+  if (!file) return;
+  var target = input.dataset.target;
+  toast('上传中…');
+  uploadFile(file).then(function(res){
+    if (target) {
+      var hid = document.getElementById(target);
+      if (hid) hid.value = res.url;
+      toast('上传成功，记得点保存');
+      var prev = document.createElement('img');
+      prev.src = res.url; prev.style.cssText = 'width:70px;height:46px;object-fit:cover;border-radius:6px;margin-top:6px';
+      input.parentNode.appendChild(prev);
+    } else {
+      dbAdd('files', { name: file.name, kind: res.kind, url: res.url, size: file.size }).then(function(){ toast('上传成功'); render(); });
+    }
+  }).catch(function(err){ toast('上传失败：' + err.message); });
+  input.value = '';
+}
+
+/* ---------------- 交互：购物车 ---------------- */
+function cartAdd(dishId){
+  var d = findDish(dishId); if (!d) return;
+  if (cart.shop_id && cart.shop_id !== d.shop_id && cartCount() > 0) {
+    if (!confirm('购物车中有其他店铺的菜品，替换为当前店铺？')) return;
+    cart = { shop_id: d.shop_id, items: {} };
+  }
+  cart.shop_id = d.shop_id;
+  cart.items[dishId] = (cart.items[dishId] || 0) + 1;
+  saveCart(); render();
+}
+function cartSub(dishId){
+  if (!cart.items[dishId]) return;
+  cart.items[dishId]--;
+  if (cart.items[dishId] <= 0) delete cart.items[dishId];
+  if (!cartCount()) cart.shop_id = null;
+  saveCart(); render();
+}
+
+/* ---------------- 交互：表单提交 ---------------- */
+document.addEventListener('submit', function(e){
+  var f = e.target;
+  var kind = f.dataset.form;
+  if (!kind) return;
+  e.preventDefault();
+  var fd = new FormData(f);
+  if (kind === 'login') {
+    if (fd.get('user') === settings().admin_user && fd.get('pass') === settings().admin_pass) {
+      sessionStorage.setItem('jpd_admin', '1'); toast('登录成功'); render();
+    } else toast('账号或密码错误');
+  }
+  else if (kind === 'shop') {
+    var row = {
+      name: String(fd.get('name') || '').trim(),
+      tags: String(fd.get('tags') || '').split(/[,，]/).map(function(s){ return s.trim(); }).filter(Boolean),
+      badge: String(fd.get('badge') || '').trim(),
+      emoji: String(fd.get('emoji') || '').trim(),
+      image: String(fd.get('image') || ''),
+      descr: String(fd.get('descr') || '').trim()
+    };
+    if (state.editShop === 'new') dbAdd('shops', row).then(function(){ state.editShop = null; toast('已新增店铺'); render(); });
+    else { row.id = state.editShop; dbUpd('shops', row).then(function(){ state.editShop = null; toast('已保存'); render(); }); }
+  }
+  else if (kind === 'dish') {
+    var drow = {
+      shop_id: String(fd.get('shop_id')),
+      name: String(fd.get('name') || '').trim(),
+      price: Number(fd.get('price') || 0),
+      emoji: String(fd.get('emoji') || '').trim(),
+      image: String(fd.get('image') || ''),
+      descr: String(fd.get('descr') || '').trim()
+    };
+    if (state.editDish === 'new') dbAdd('dishes', drow).then(function(){ state.editDish = null; toast('已新增菜品'); render(); });
+    else { drow.id = state.editDish; dbUpd('dishes', drow).then(function(){ state.editDish = null; toast('已保存'); render(); }); }
+  }
+  else if (kind === 'order') {
+    var ids = Object.keys(cart.items).filter(function(k){ return cart.items[k] > 0; });
+    if (!ids.length) { toast('购物车为空'); return; }
+    var items = ids.map(function(id){ var d = findDish(id); return { dish_id: id, name: d.name, price: Number(d.price), qty: cart.items[id] }; });
+    var cust = { name: String(fd.get('name') || '').trim(), phone: String(fd.get('phone') || '').trim(), table: String(fd.get('table') || '').trim(), remark: String(fd.get('remark') || '').trim(), device: deviceId() };
+    LS.set('jpd_customer', { name: cust.name, phone: cust.phone, table: cust.table });
+    var order = { code: 'NO' + Date.now().toString().slice(-8), shop_id: cart.shop_id, items: items, total: cartTotal(), customer: cust, status: 'pending' };
+    cart = { shop_id: null, items: {} }; saveCart();
+    dbAdd('orders', order).then(function(){ toast('下单成功 🎉'); location.hash = '#/orders'; render(); });
+  }
+  else if (kind === 'settings') {
+    saveSettings({
+      app_name: String(fd.get('app_name') || '').trim(),
+      logo_char: String(fd.get('logo_char') || '').trim(),
+      app_sub: String(fd.get('app_sub') || '').trim(),
+      section_title: String(fd.get('section_title') || '').trim(),
+      admin_user: String(fd.get('admin_user') || '').trim(),
+      admin_pass: String(fd.get('admin_pass') || ''),
+      gold1: String(fd.get('gold1') || ''), gold2: String(fd.get('gold2') || ''), gold_tx: String(fd.get('gold_tx') || ''),
+      primary1: String(fd.get('primary1') || ''), primary2: String(fd.get('primary2') || ''),
+      st_pending: String(fd.get('st_pending') || ''), st_cooking: String(fd.get('st_cooking') || ''),
+      st_done: String(fd.get('st_done') || ''), st_cancelled: String(fd.get('st_cancelled') || '')
+    });
+  }
+  else if (kind === 'order-edit') {
+    var oid = state.editOrder, o = null;
+    for (var oi = 0; oi < cache.orders.length; oi++) if (cache.orders[oi].id === oid) o = cache.orders[oi];
+    if (o) {
+      dbUpd('orders', {
+        id: oid, status: String(fd.get('status')), total: Number(fd.get('total') || 0),
+        customer: Object.assign({}, o.customer, {
+          name: String(fd.get('name') || '').trim(), phone: String(fd.get('phone') || '').trim(),
+          table: String(fd.get('table') || '').trim(), remark: String(fd.get('remark') || '').trim()
+        })
+      }).then(function(){ state.editOrder = null; toast('已保存'); render(); });
+    }
+  }
+  else if (kind === 'file-edit') {
+    dbUpd('files', { id: state.editFile, name: String(fd.get('name') || '').trim() }).then(function(){ state.editFile = null; toast('已保存'); render(); });
+  }
+});
+
+/* ---------------- PWA：manifest / 图标 / 安装 / SW / 离线 ---------------- */
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferredPrompt = e; var b = $('#installBtn'); if (b) b.style.display = 'flex'; });
+function doInstall(){ if (!deferredPrompt) { toast('浏览器菜单中可选择「添加到主屏幕」'); return; } deferredPrompt.prompt(); deferredPrompt = null; var b = $('#installBtn'); if (b) b.style.display = 'none'; }
+function pngIcon(size){
+  var c = document.createElement('canvas'); c.width = c.height = size;
+  var x = c.getContext('2d');
+  var s = settings();
+  var g = x.createLinearGradient(0, 0, size, size);
+  g.addColorStop(0, s.gold1); g.addColorStop(1, s.gold2);
+  x.fillStyle = g; x.fillRect(0, 0, size, size);
+  x.fillStyle = 'rgba(255,255,255,.25)'; x.beginPath(); x.arc(size * 0.82, size * 0.16, size * 0.3, 0, Math.PI * 2); x.fill();
+  x.fillStyle = s.gold_tx; x.font = 'bold ' + Math.round(size * 0.5) + 'px sans-serif';
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(s.logo_char || '餐', size / 2, size * 0.55);
+  return c.toDataURL('image/png');
+}
+var manifestLink = null, appleLink = null;
+function setupPWA(){
+  var s = settings();
+  var manifest = {
+    name: s.app_name, short_name: s.app_name,
+    start_url: location.pathname, scope: location.pathname.replace(/[^/]*$/, ''),
+    display: 'standalone', background_color: '#f5f6f8', theme_color: '#f5f6f8',
+    icons: [
+      { src: pngIcon(192), sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: pngIcon(512), sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  if (!manifestLink) { manifestLink = document.createElement('link'); manifestLink.rel = 'manifest'; document.head.appendChild(manifestLink); }
+  manifestLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+  if (!appleLink) { appleLink = document.createElement('link'); appleLink.rel = 'apple-touch-icon'; document.head.appendChild(appleLink); }
+  appleLink.href = pngIcon(180);
+  if ('serviceWorker' in navigator && location.protocol !== 'file:' && !window.__swTried) {
+    window.__swTried = 1;
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* 单文件部署时忽略：离线依赖浏览器缓存与本地数据 */ });
+  }
+}
+window.addEventListener('online', function(){ document.body.classList.remove('offline'); toast('已恢复联网'); refreshAll(); });
+window.addEventListener('offline', function(){ document.body.classList.add('offline'); toast('网络已断开，进入离线模式'); render(); });
+
+/* ---------------- 启动 ---------------- */
+window.addEventListener('hashchange', render);
+applyTheme();
+setupPWA();
+render();
+refreshAll();
+</script>
+</body>
+</html>
