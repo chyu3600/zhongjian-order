@@ -782,6 +782,7 @@ function tabbarHTML(cur){
       '<button class="bar-cancel" data-act="close-search">取消</button></div>';
   }
   var tabs = [['home', '#/', '🏠', '首页'], ['search', '', '🔍', '搜索'], ['cart', '#/cart', '🛒', '购物车'], ['orders', '#/orders', '🧾', '订单']];
+  if (isAdmin()) tabs.push(['admin', '#/admin', '⚙️', '管理']);
   return '<div class="tabbar">' + tabs.map(function(t){
     if (t[0] === 'search') return '<button class="tab" data-act="toggle-search"><span class="ico">🔍</span>搜索</button>';
     return '<button class="tab' + (cur === t[0] ? ' on' : '') + '" data-act="go" data-hash="' + t[1] + '"><span class="ico">' + t[2] + '</span>' + t[3] +
