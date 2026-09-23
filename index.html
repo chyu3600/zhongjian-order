@@ -121,7 +121,8 @@ input,select,textarea{font-family:inherit}
 .bar-cancel{border:none;background:none;color:#666a70;font-size:13px;padding:0 14px;cursor:pointer;flex:none}
 
 /* ---------- 管理后台 ---------- */
-.admin-head{background:#1c1f23;color:#fff;padding:16px 14px;display:flex;align-items:center;justify-content:space-between}
+.admin-head{background:#1c1f23;color:#fff;padding:16px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.admin-head>div:first-child{flex:1;min-width:0}
 .admin-head h1{margin:0;font-size:17px;font-weight:800}
 .admin-head .sub{font-size:11px;color:#9aa0a6;margin-top:2px}
 .admin-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;background:#1c1f23}
@@ -562,7 +563,8 @@ function viewAdmin(){
   else if (state.adminTab === 'files') body = adminFiles();
   else body = adminSettings();
   return '<div class="admin-head"><div><h1>' + esc(settings().app_name) + ' · 管理后台</h1><div class="sub">' + (cloudOk() ? '☁️ 已连接 Supabase' : '💾 本地模式（未配置 Supabase 或离线）') + '</div></div>' +
-    '<button class="btn btn-ghost btn-sm" data-act="logout">退出</button></div>' +
+    '<div style="display:flex;gap:8px;flex:none"><button class="btn btn-ghost btn-sm" data-act="go" data-hash="#/">← 返回前台</button>' +
+    '<button class="btn btn-danger btn-sm" data-act="logout">退出登入</button></div></div>' +
     '<div class="admin-tabs">' + tabs.map(function(t){ return '<button class="chip' + (state.adminTab === t[0] ? ' on' : '') + '" data-act="admin-tab" data-id="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' +
     '<div class="admin-body">' + body + '</div>';
 }
