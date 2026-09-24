@@ -227,7 +227,7 @@ function persist(){ LS.set('jpd_cache', cache); }
 var DEFAULT_SETTINGS = {
   id: 'app',
   app_name: '忠鍵工業點餐app', app_sub: '員工餐廳 · 線上點餐 · 快速取餐',
-  logo_char: '忠', section_title: '為您推薦',
+  logo_char: '忠', section_title: '為您推薦', memo_title: '冷鍛技術',
   admin_user: 'admin', admin_pass: '3366',
   gold1: '#f7d878', gold2: '#e9b23f', gold_tx: '#7a5200',
   primary1: '#ff8a3d', primary2: '#ff5f2e',
@@ -253,7 +253,9 @@ function applyTheme(){
 async function saveSettings(row){
   row.id = 'app';
   if (cloudOk()) {
-    var r = await sb().from('settings').upsert(row);
+    var cloudRow = Object.assign({}, row);
+    delete cloudRow.memo_title; // 云端 settings 表无此栏，仅存本地，避免整笔保存失败
+    var r = await sb().from('settings').upsert(cloudRow);
     if (r && r.error) toast('云端保存失败：' + r.error.message);
   }
   cache.settings = Object.assign({}, cache.settings, row);
@@ -284,7 +286,12 @@ async function refreshAll(){
     if (res && !res.error && Array.isArray(res.data)) { cache[t] = res.data; changed = true; }
   }
   var rs = await sb().from('settings').select('*').eq('id', 'app');
-  if (rs && !rs.error && rs.data && rs.data[0]) { cache.settings = Object.assign({}, DEFAULT_SETTINGS, rs.data[0]); changed = true; }
+  if (rs && !rs.error && rs.data && rs.data[0]) {
+    var localMemo = cache.settings && cache.settings.memo_title;
+    cache.settings = Object.assign({}, DEFAULT_SETTINGS, rs.data[0]);
+    if (rs.data[0].memo_title == null && localMemo != null) cache.settings.memo_title = localMemo;
+    changed = true;
+  }
   if (changed) { persist(); applyTheme(); render(); }
 }
 async function dbAdd(t, row){
@@ -434,7 +441,7 @@ function openHtmlStandalone(f){
 function homeMemosHTML(){
   var memos = cache.files.filter(function(f){ return isHtmlFile(f); });
   if (!memos.length) return '';
-  return '<div class="section-title">冷鍛技術</div>' + memos.map(function(f){
+  return '<div class="section-title">' + esc(settings().memo_title || '冷鍛技術') + '</div>' + memos.map(function(f){
     var title = f.name.replace(/\.html?$/i, '');
     return '<div class="panel"><div class="frow" style="border-bottom:none;padding:4px 0">' +
       '<span class="ficon">📖</span>' +
@@ -766,7 +773,7 @@ var SQL_SCHEMA =
 "create policy pub_all on orders for all using (true) with check (true);\n" +
 "create policy pub_sel on files for select using (true);\n" +
 "create policy pub_all on files for all using (true) with check (true);\n" +
-"create table if not exists settings (\n  id text primary key,\n  app_name text, app_sub text, logo_char text, section_title text,\n  admin_user text, admin_pass text,\n  gold1 text, gold2 text, gold_tx text, primary1 text, primary2 text,\n  st_pending text, st_cooking text, st_done text, st_cancelled text\n);\n" +
+"create table if not exists settings (\n  id text primary key,\n  app_name text, app_sub text, logo_char text, section_title text, memo_title text,\n  admin_user text, admin_pass text,\n  gold1 text, gold2 text, gold_tx text, primary1 text, primary2 text,\n  st_pending text, st_cooking text, st_done text, st_cancelled text\n);\n" +
 "alter table settings enable row level security;\n" +
 "create policy pub_sel on settings for select using (true);\n" +
 "create policy pub_all on settings for all using (true) with check (true);\n" +
@@ -786,6 +793,7 @@ function adminSettings(){
     '<div class="field"><label>Logo 字</label><input name="logo_char" maxlength="2" value="' + esc(s.logo_char) + '"></div></div>' +
     '<div class="field"><label>副标题</label><input name="app_sub" value="' + esc(s.app_sub) + '"></div>' +
     '<div class="field"><label>首页区块标题</label><input name="section_title" value="' + esc(s.section_title) + '"></div>' +
+    '<div class="field"><label>技术文件区标题</label><input name="memo_title" value="' + esc(s.memo_title || '冷鍛技術') + '"></div>' +
     '<div class="row2"><div class="field"><label>后台账号</label><input name="admin_user" required value="' + esc(s.admin_user) + '"></div>' +
     '<div class="field"><label>后台密码</label><input name="admin_pass" required value="' + esc(s.admin_pass) + '"></div></div>' +
     '<div class="kv" style="margin:4px 0 8px"><b>主题配色</b></div>' +
@@ -1080,6 +1088,7 @@ document.addEventListener('submit', function(e){
       logo_char: String(fd.get('logo_char') || '').trim(),
       app_sub: String(fd.get('app_sub') || '').trim(),
       section_title: String(fd.get('section_title') || '').trim(),
+      memo_title: String(fd.get('memo_title') || '').trim(),
       admin_user: String(fd.get('admin_user') || '').trim(),
       admin_pass: String(fd.get('admin_pass') || ''),
       gold1: String(fd.get('gold1') || ''), gold2: String(fd.get('gold2') || ''), gold_tx: String(fd.get('gold_tx') || ''),
