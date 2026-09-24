@@ -687,8 +687,8 @@ function adminFiles(){
       '<button class="btn btn-ghost btn-sm" data-act="edit-file" data-id="' + f.id + '">改名</button> ' +
       '<button class="btn btn-danger btn-sm" data-act="del-file" data-id="' + f.id + '">删除</button></td></tr>';
   }).join('');
-  return form + '<div class="panel"><label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ 上传图片 / Excel / Word 文件<input type="file" accept="image/*,.xlsx,.xls,.csv,.docx,.doc" data-target="" hidden></label>' +
-    '<div class="hint">Excel（.xlsx/.xls/.csv）与 Word（.docx/.doc）上传后，前台可预览与下载。</div>' +
+  return form + '<div class="panel"><label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ 上传图片 / Excel / Word / HTML 文件<input type="file" accept="image/*,.xlsx,.xls,.csv,.docx,.doc,.html,.htm" data-target="" hidden></label>' +
+    '<div class="hint">Excel（.xlsx/.xls/.csv）与 Word（.docx/.doc）上传后，前台可预览与下载；HTML 文件下载后可直接用浏览器打开。</div>' +
     '<div class="field" style="margin-top:10px"><label>YouTube 影片连结（贴上网址后点新增）</label>' +
     '<div style="display:flex;gap:8px"><input id="ytUrl" placeholder="https://www.youtube.com/watch?v=…">' +
     '<button class="btn btn-primary" type="button" data-act="add-yt" style="flex:none">新增</button></div></div>' +
