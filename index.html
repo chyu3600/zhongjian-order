@@ -327,7 +327,8 @@ async function uploadFile(file){
   else if (/\.(docx|doc)$/i.test(file.name)) kind = 'word';
   if (cloudOk()) {
     var bucket = kind === 'image' ? 'images' : 'docs';
-    var path = Date.now() + '_' + file.name;
+    var safeName = file.name.replace(/[^\x20-\x7E]+/g, '_').replace(/[\/\\:*?"<>|#%{}|^~\[\]]+/g, '_').replace(/\s+/g, '_');
+    var path = Date.now() + '_' + (safeName || 'file');
     var up = await sb().storage.from(bucket).upload(path, file, { contentType: file.type || 'application/octet-stream' });
     if (!up.error) {
       var pub = sb().storage.from(bucket).getPublicUrl(path);
