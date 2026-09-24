@@ -434,7 +434,7 @@ function openHtmlStandalone(f){
 function homeMemosHTML(){
   var memos = cache.files.filter(function(f){ return isHtmlFile(f); });
   if (!memos.length) return '';
-  return '<div class="section-title">技術備忘錄</div>' + memos.map(function(f){
+  return '<div class="section-title">冷鍛技術</div>' + memos.map(function(f){
     var title = f.name.replace(/\.html?$/i, '');
     return '<div class="panel"><div class="frow" style="border-bottom:none;padding:4px 0">' +
       '<span class="ficon">📖</span>' +
